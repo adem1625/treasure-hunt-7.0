@@ -60,7 +60,7 @@
             width: 120px;
             height: 120px;
             background-image: url(./gen.png);
-            background-size: 600px 600px;
+            background-size: 480px 480px; /* Updated to match 4x120px grid */
             border: 2px solid #b8860b;
             cursor: grab;
             transition: all 0.3s ease;
@@ -127,7 +127,7 @@
         const puzzleContainer = document.getElementById('puzzleContainer');
         const gridSize = 4;
         const pieceSize = 120;
-        const imageSize = 600;
+        const imageSize = 480; // Updated to 4x120px
         let draggedPiece = null;
         let currentGrid = [];
 
