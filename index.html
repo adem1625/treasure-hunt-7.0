@@ -237,8 +237,10 @@
 
     function onDragEnd(e) {
       if (!draggedPiece) return;
-      // Find drop target using pointer release coordinates
+      // Temporarily hide the dragged piece so it doesn't block the elementFromPoint detection
+      draggedPiece.style.display = 'none';
       const dropElem = document.elementFromPoint(e.clientX, e.clientY);
+      draggedPiece.style.display = '';
       const targetPiece = dropElem?.closest('.puzzle-piece');
       if (targetPiece && targetPiece !== draggedPiece) {
         swapPieces(draggedPiece, targetPiece, true);
@@ -279,7 +281,10 @@
       } else {
         touch = { clientX: startX, clientY: startY };
       }
+      // Temporarily hide the dragged piece for drop detection
+      draggedPiece.style.display = 'none';
       const dropElem = document.elementFromPoint(touch.clientX, touch.clientY);
+      draggedPiece.style.display = '';
       const targetPiece = dropElem?.closest('.puzzle-piece');
       if (targetPiece && targetPiece !== draggedPiece) {
         swapPieces(draggedPiece, targetPiece, true);
