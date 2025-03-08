@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Magic Puzzle Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
     <style>
         @keyframes gradientAnimation {
@@ -44,15 +45,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            touch-action: manipulation;
         }
 
         .container {
             background: rgba(0, 0, 50, 0.85);
-            padding: 40px 50px;
+            padding: 20px;
             border-radius: 10px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.8);
             border: 2px solid #ffd700;
-            margin: 40px auto;
+            margin: 20px auto;
             animation: fadeInUp 1s ease-out forwards;
         }
 
@@ -63,57 +65,54 @@
 
         h1 {
             text-align: center;
-            font-size: 2.5em;
+            font-size: 2em;
             color: #FFD700;
             text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
             letter-spacing: 2px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             animation: victoryGlow 2s ease-in-out infinite;
         }
 
         .puzzle-container {
             display: grid;
-            grid-template-columns: repeat(4, 120px);
+            grid-template-columns: repeat(4, 1fr);
             gap: 2px;
-            margin: 20px;
+            margin: 10px;
+            touch-action: none;
         }
 
         .puzzle-piece {
-            width: 120px;
-            height: 120px;
+            width: 20vw;
+            height: 20vw;
+            max-width: 120px;
+            max-height: 120px;
             background-image: url(./gen.png);
-            background-size: 480px 480px;
+            background-size: 400% 400%;
             border: 2px solid #b8860b;
-            cursor: grab;
             transition: all 0.3s ease;
             box-shadow: 0 0 10px rgba(0,0,0,0.3);
             position: relative;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
-        .puzzle-piece:hover {
-            transform: scale(1.05);
+        .puzzle-piece.active {
+            transform: scale(1.1);
             z-index: 2;
             box-shadow: 0 0 15px rgba(255,215,0,0.5);
             filter: brightness(1.1);
         }
 
-        .puzzle-piece.dragging {
-            opacity: 0.7;
-            filter: grayscale(50%);
-            cursor: grabbing;
-        }
-
         #winMessage {
             display: none;
             color: #FFD700;
-            font-size: 2em;
+            font-size: 1.5em;
             text-align: center;
-            padding: 20px;
+            padding: 15px;
             background: rgba(0, 0, 50, 0.9);
             border: 2px solid #ffd700;
             border-radius: 10px;
-            margin-top: 20px;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            margin-top: 15px;
             animation: genieAppear 1.5s ease-out forwards;
         }
 
@@ -134,6 +133,22 @@
             text-align: center;
             animation: genieAppear 1.5s ease-out;
         }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .puzzle-piece {
+                width: 22vw;
+                height: 22vw;
+            }
+        }
     </style>
 </head>
 <body>
@@ -144,8 +159,8 @@
     </div>
     <div class="victory-overlay" id="victoryOverlay">
         <div class="victory-content">
-            <h2 style="font-size: 3em; margin-bottom: 20px;">🌟 Victory! 🌟</h2>
-            <p style="font-size: 1.5em;">The arcane energies have been stabilized!</p>
+            <h2 style="font-size: 2.5em; margin-bottom: 15px;">🌟 Victory! 🌟</h2>
+            <p style="font-size: 1.2em;">The arcane energies have been stabilized!</p>
         </div>
     </div>
 
@@ -153,9 +168,9 @@
         const puzzleContainer = document.getElementById('puzzleContainer');
         const victoryOverlay = document.getElementById('victoryOverlay');
         const gridSize = 4;
-        const pieceSize = 120;
-        const imageSize = 480;
         let draggedPiece = null;
+        let touchStartX = 0;
+        let touchStartY = 0;
 
         function createPuzzle() {
             puzzleContainer.innerHTML = '';
@@ -166,91 +181,93 @@
                 for(let col = 0; col < gridSize; col++) {
                     const piece = document.createElement('div');
                     piece.className = 'puzzle-piece';
-                    piece.draggable = true;
-                    piece.style.backgroundPosition = `${-col * pieceSize}px ${-row * pieceSize}px`;
+                    piece.style.backgroundPosition = `${-col * 100}% ${-row * 100}%`;
                     piece.dataset.originalRow = row;
                     piece.dataset.originalCol = col;
                     piece.dataset.currentRow = row;
                     piece.dataset.currentCol = col;
                     
-                    piece.addEventListener('dragstart', handleDragStart);
-                    piece.addEventListener('dragover', handleDragOver);
-                    piece.addEventListener('dragend', handleDragEnd);
-                    piece.addEventListener('drop', handleDrop);
+                    // Add both mouse and touch events
+                    piece.addEventListener('mousedown', handleStart);
+                    piece.addEventListener('touchstart', handleStart);
+                    piece.addEventListener('mouseup', handleEnd);
+                    piece.addEventListener('touchend', handleEnd);
+                    piece.addEventListener('touchcancel', handleCancel);
 
                     pieces.push(piece);
                 }
             }
 
-            // Shuffle pieces immediately
             shufflePieces(pieces);
             pieces.forEach(piece => puzzleContainer.appendChild(piece));
         }
 
         function shufflePieces(pieces) {
-            // Fisher-Yates shuffle with additional rotations
             for(let i = pieces.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                const tempRow = pieces[i].dataset.currentRow;
-                const tempCol = pieces[i].dataset.currentCol;
-                
-                // Swap positions
-                pieces[i].dataset.currentRow = pieces[j].dataset.currentRow;
-                pieces[i].dataset.currentCol = pieces[j].dataset.currentCol;
-                pieces[j].dataset.currentRow = tempRow;
-                pieces[j].dataset.currentCol = tempCol;
-
-                // Swap DOM elements
-                const tempPos = pieces[i].style.backgroundPosition;
-                pieces[i].style.backgroundPosition = pieces[j].style.backgroundPosition;
-                pieces[j].style.backgroundPosition = tempPos;
-
-                // Random rotation
-                pieces[i].style.transform = `rotate(${Math.random() * 20 - 10}deg)`;
-                pieces[j].style.transform = `rotate(${Math.random() * 20 - 10}deg)`;
+                swapPieces(pieces[i], pieces[j]);
             }
         }
 
-        function handleDragStart(e) {
-            draggedPiece = e.target;
-            e.target.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-        }
-
-        function handleDragOver(e) {
+        function handleStart(e) {
             e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-        }
+            const piece = e.target.closest('.puzzle-piece');
+            if (!piece) return;
 
-        function handleDrop(e) {
-            e.preventDefault();
-            const targetPiece = e.target.closest('.puzzle-piece');
+            draggedPiece = piece;
+            piece.classList.add('active');
             
-            if(targetPiece && targetPiece !== draggedPiece) {
-                // Swap positions
-                const tempRow = draggedPiece.dataset.currentRow;
-                const tempCol = draggedPiece.dataset.currentCol;
-                
-                draggedPiece.dataset.currentRow = targetPiece.dataset.currentRow;
-                draggedPiece.dataset.currentCol = targetPiece.dataset.currentCol;
-                targetPiece.dataset.currentRow = tempRow;
-                targetPiece.dataset.currentCol = tempCol;
+            if (e.type === 'touchstart') {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }
+        }
 
-                // Swap background positions
-                const tempPos = draggedPiece.style.backgroundPosition;
-                draggedPiece.style.backgroundPosition = targetPiece.style.backgroundPosition;
-                targetPiece.style.backgroundPosition = tempPos;
+        function handleEnd(e) {
+            if (!draggedPiece) return;
+            
+            const touch = e.type === 'touchend' ? e.changedTouches[0] : e;
+            const endX = touch.clientX;
+            const endY = touch.clientY;
+            
+            // Check if it's a tap (not swipe)
+            if (e.type === 'touchend' && 
+                Math.abs(endX - touchStartX) > 10 || 
+                Math.abs(endY - touchStartY) > 10) {
+                return;
+            }
 
-                // Reset rotations
-                draggedPiece.style.transform = 'rotate(0deg)';
-                targetPiece.style.transform = 'rotate(0deg)';
-
+            const targetPiece = document.elementFromPoint(endX, endY).closest('.puzzle-piece');
+            
+            if (targetPiece && targetPiece !== draggedPiece) {
+                swapPieces(draggedPiece, targetPiece);
                 checkWin();
             }
+
+            draggedPiece.classList.remove('active');
+            draggedPiece = null;
         }
 
-        function handleDragEnd(e) {
-            e.target.classList.remove('dragging');
+        function handleCancel() {
+            if (draggedPiece) {
+                draggedPiece.classList.remove('active');
+                draggedPiece = null;
+            }
+        }
+
+        function swapPieces(piece1, piece2) {
+            // Swap background positions
+            const tempPos = piece1.style.backgroundPosition;
+            piece1.style.backgroundPosition = piece2.style.backgroundPosition;
+            piece2.style.backgroundPosition = tempPos;
+
+            // Swap current positions
+            const tempRow = piece1.dataset.currentRow;
+            const tempCol = piece1.dataset.currentCol;
+            piece1.dataset.currentRow = piece2.dataset.currentRow;
+            piece1.dataset.currentCol = piece2.dataset.currentCol;
+            piece2.dataset.currentRow = tempRow;
+            piece2.dataset.currentCol = tempCol;
         }
 
         function checkWin() {
@@ -263,7 +280,6 @@
                 document.getElementById('winMessage').style.display = 'block';
                 victoryOverlay.style.display = 'flex';
                 
-                // Add celebration effects
                 puzzleContainer.style.transform = 'scale(1.05)';
                 puzzleContainer.style.filter = 'drop-shadow(0 0 20px gold)';
                 
@@ -273,7 +289,7 @@
             }
         }
 
-        // Initialize the game with shuffled pieces
+        // Initialize the game
         createPuzzle();
     </script>
 </body>
