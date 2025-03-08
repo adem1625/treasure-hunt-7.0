@@ -11,6 +11,27 @@
             100% { background-position: 0% 50%; }
         }
 
+        @keyframes victoryGlow {
+            0% { text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+            50% { text-shadow: 0 0 30px rgba(255,215,0,0.9); }
+            100% { text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+        }
+
+        @keyframes genieAppear {
+            0% { 
+                transform: scale(0) rotate(-360deg);
+                opacity: 0;
+            }
+            80% {
+                transform: scale(1.1) rotate(10deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -47,6 +68,7 @@
             text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
             letter-spacing: 2px;
             margin-bottom: 20px;
+            animation: victoryGlow 2s ease-in-out infinite;
         }
 
         .puzzle-container {
@@ -60,7 +82,7 @@
             width: 120px;
             height: 120px;
             background-image: url(./gen.png);
-            background-size: 480px 480px; /* Updated to match 4x120px grid */
+            background-size: 480px 480px;
             border: 2px solid #b8860b;
             cursor: grab;
             transition: all 0.3s ease;
@@ -95,23 +117,22 @@
             animation: genieAppear 1.5s ease-out forwards;
         }
 
-        button {
-            padding: 15px 30px;
-            font-size: 1.2em;
-            background-color: #9370DB;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .victory-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            margin-top: 20px;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
         }
 
-        button:hover {
-            background-color: #8A2BE2;
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(255,215,0,0.5);
+        .victory-content {
+            text-align: center;
+            animation: genieAppear 1.5s ease-out;
         }
     </style>
 </head>
@@ -119,54 +140,77 @@
     <div class="container">
         <h1>Mystical Image Puzzle</h1>
         <div class="puzzle-container" id="puzzleContainer"></div>
-        <button onclick="shufflePieces()">Shuffle Pieces</button>
         <div id="winMessage">Puzzle Solved! Ancient Magic Restored! 🔮</div>
+    </div>
+    <div class="victory-overlay" id="victoryOverlay">
+        <div class="victory-content">
+            <h2 style="font-size: 3em; margin-bottom: 20px;">🌟 Victory! 🌟</h2>
+            <p style="font-size: 1.5em;">The arcane energies have been stabilized!</p>
+        </div>
     </div>
 
     <script>
         const puzzleContainer = document.getElementById('puzzleContainer');
+        const victoryOverlay = document.getElementById('victoryOverlay');
         const gridSize = 4;
         const pieceSize = 120;
-        const imageSize = 480; // Updated to 4x120px
+        const imageSize = 480;
         let draggedPiece = null;
-        let currentGrid = [];
 
-        // Initialize puzzle
         function createPuzzle() {
             puzzleContainer.innerHTML = '';
-            currentGrid = [];
+            const pieces = [];
 
-            // Create grid structure
+            // Create pieces with correct positions
             for(let row = 0; row < gridSize; row++) {
-                currentGrid[row] = [];
                 for(let col = 0; col < gridSize; col++) {
-                    const index = row * gridSize + col;
                     const piece = document.createElement('div');
                     piece.className = 'puzzle-piece';
                     piece.draggable = true;
-                    
-                    // Set background position
                     piece.style.backgroundPosition = `${-col * pieceSize}px ${-row * pieceSize}px`;
-                    
-                    // Store positions
                     piece.dataset.originalRow = row;
                     piece.dataset.originalCol = col;
                     piece.dataset.currentRow = row;
                     piece.dataset.currentCol = col;
-
-                    // Event listeners
+                    
                     piece.addEventListener('dragstart', handleDragStart);
                     piece.addEventListener('dragover', handleDragOver);
                     piece.addEventListener('dragend', handleDragEnd);
                     piece.addEventListener('drop', handleDrop);
 
-                    currentGrid[row][col] = piece;
-                    puzzleContainer.appendChild(piece);
+                    pieces.push(piece);
                 }
+            }
+
+            // Shuffle pieces immediately
+            shufflePieces(pieces);
+            pieces.forEach(piece => puzzleContainer.appendChild(piece));
+        }
+
+        function shufflePieces(pieces) {
+            // Fisher-Yates shuffle with additional rotations
+            for(let i = pieces.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const tempRow = pieces[i].dataset.currentRow;
+                const tempCol = pieces[i].dataset.currentCol;
+                
+                // Swap positions
+                pieces[i].dataset.currentRow = pieces[j].dataset.currentRow;
+                pieces[i].dataset.currentCol = pieces[j].dataset.currentCol;
+                pieces[j].dataset.currentRow = tempRow;
+                pieces[j].dataset.currentCol = tempCol;
+
+                // Swap DOM elements
+                const tempPos = pieces[i].style.backgroundPosition;
+                pieces[i].style.backgroundPosition = pieces[j].style.backgroundPosition;
+                pieces[j].style.backgroundPosition = tempPos;
+
+                // Random rotation
+                pieces[i].style.transform = `rotate(${Math.random() * 20 - 10}deg)`;
+                pieces[j].style.transform = `rotate(${Math.random() * 20 - 10}deg)`;
             }
         }
 
-        // Drag handlers
         function handleDragStart(e) {
             draggedPiece = e.target;
             e.target.classList.add('dragging');
@@ -183,53 +227,30 @@
             const targetPiece = e.target.closest('.puzzle-piece');
             
             if(targetPiece && targetPiece !== draggedPiece) {
-                // Swap positions in the grid
-                const tempRow = parseInt(draggedPiece.dataset.currentRow);
-                const tempCol = parseInt(draggedPiece.dataset.currentCol);
-                const targetRow = parseInt(targetPiece.dataset.currentRow);
-                const targetCol = parseInt(targetPiece.dataset.currentCol);
-
-                // Update dataset
-                draggedPiece.dataset.currentRow = targetRow;
-                draggedPiece.dataset.currentCol = targetCol;
+                // Swap positions
+                const tempRow = draggedPiece.dataset.currentRow;
+                const tempCol = draggedPiece.dataset.currentCol;
+                
+                draggedPiece.dataset.currentRow = targetPiece.dataset.currentRow;
+                draggedPiece.dataset.currentCol = targetPiece.dataset.currentCol;
                 targetPiece.dataset.currentRow = tempRow;
                 targetPiece.dataset.currentCol = tempCol;
 
                 // Swap background positions
-                swapPieces(draggedPiece, targetPiece);
+                const tempPos = draggedPiece.style.backgroundPosition;
+                draggedPiece.style.backgroundPosition = targetPiece.style.backgroundPosition;
+                targetPiece.style.backgroundPosition = tempPos;
+
+                // Reset rotations
+                draggedPiece.style.transform = 'rotate(0deg)';
+                targetPiece.style.transform = 'rotate(0deg)';
+
                 checkWin();
             }
         }
 
         function handleDragEnd(e) {
             e.target.classList.remove('dragging');
-        }
-
-        function swapPieces(piece1, piece2) {
-            // Swap background positions
-            const tempPos = piece1.style.backgroundPosition;
-            piece1.style.backgroundPosition = piece2.style.backgroundPosition;
-            piece2.style.backgroundPosition = tempPos;
-        }
-
-        function shufflePieces() {
-            const pieces = Array.from(puzzleContainer.children);
-            
-            // Fisher-Yates shuffle algorithm
-            for(let i = pieces.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                swapPieces(pieces[i], pieces[j]);
-                
-                // Swap dataset positions
-                const tempRow = pieces[i].dataset.currentRow;
-                const tempCol = pieces[i].dataset.currentCol;
-                pieces[i].dataset.currentRow = pieces[j].dataset.currentRow;
-                pieces[i].dataset.currentCol = pieces[j].dataset.currentCol;
-                pieces[j].dataset.currentRow = tempRow;
-                pieces[j].dataset.currentCol = tempCol;
-            }
-            
-            document.getElementById('winMessage').style.display = 'none';
         }
 
         function checkWin() {
@@ -240,14 +261,19 @@
 
             if(allCorrect) {
                 document.getElementById('winMessage').style.display = 'block';
-                puzzleContainer.classList.add('solved');
+                victoryOverlay.style.display = 'flex';
+                
+                // Add celebration effects
+                puzzleContainer.style.transform = 'scale(1.05)';
+                puzzleContainer.style.filter = 'drop-shadow(0 0 20px gold)';
+                
                 setTimeout(() => {
-                    alert("The ancient magic is restored!\nProceed to the next challenge...");
-                }, 500);
+                    puzzleContainer.style.transform = 'scale(1)';
+                }, 1000);
             }
         }
 
-        // Initialize the game
+        // Initialize the game with shuffled pieces
         createPuzzle();
     </script>
 </body>
