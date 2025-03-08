@@ -1,296 +1,332 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Magic Puzzle Game</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        @keyframes gradientAnimation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+  <meta charset="UTF-8">
+  <title>Magic Puzzle Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
 
-        @keyframes victoryGlow {
-            0% { text-shadow: 0 0 10px rgba(255,215,0,0.5); }
-            50% { text-shadow: 0 0 30px rgba(255,215,0,0.9); }
-            100% { text-shadow: 0 0 10px rgba(255,215,0,0.5); }
-        }
+    @keyframes victoryGlow {
+      0% { text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+      50% { text-shadow: 0 0 30px rgba(255,215,0,0.9); }
+      100% { text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+    }
 
-        @keyframes genieAppear {
-            0% { 
-                transform: scale(0) rotate(-360deg);
-                opacity: 0;
-            }
-            80% {
-                transform: scale(1.1) rotate(10deg);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1) rotate(0deg);
-                opacity: 1;
-            }
-        }
+    @keyframes genieAppear {
+      0% { 
+          transform: scale(0) rotate(-360deg);
+          opacity: 0;
+      }
+      80% {
+          transform: scale(1.1) rotate(10deg);
+          opacity: 1;
+      }
+      100% {
+          transform: scale(1) rotate(0deg);
+          opacity: 1;
+      }
+    }
 
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Cinzel', serif;
-            background: linear-gradient(45deg, #4B0082, #00008B, #8A2BE2, #1E90FF);
-            background-size: 400% 400%;
-            animation: gradientAnimation 15s ease infinite;
-            color: #f5f5f5;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            touch-action: manipulation;
-        }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Cinzel', serif;
+      background: linear-gradient(45deg, #4B0082, #00008B, #8A2BE2, #1E90FF);
+      background-size: 400% 400%;
+      animation: gradientAnimation 15s ease infinite;
+      color: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* Prevent default touch scrolling on game elements */
+      touch-action: none;
+    }
 
-        .container {
-            background: rgba(0, 0, 50, 0.85);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.8);
-            border: 2px solid #ffd700;
-            margin: 20px auto;
-            animation: fadeInUp 1s ease-out forwards;
-        }
+    .container {
+      background: rgba(0, 0, 50, 0.85);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.8);
+      border: 2px solid #ffd700;
+      margin: 20px auto;
+      animation: fadeInUp 1s ease-out forwards;
+    }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-        h1 {
-            text-align: center;
-            font-size: 2em;
-            color: #FFD700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-            letter-spacing: 2px;
-            margin-bottom: 15px;
-            animation: victoryGlow 2s ease-in-out infinite;
-        }
+    h1 {
+      text-align: center;
+      font-size: 2em;
+      color: #FFD700;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+      letter-spacing: 2px;
+      margin-bottom: 15px;
+      animation: victoryGlow 2s ease-in-out infinite;
+    }
 
-        .puzzle-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 2px;
-            margin: 10px;
-            touch-action: none;
-        }
+    .puzzle-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+      margin: 10px;
+      position: relative;
+    }
 
-        .puzzle-piece {
-            width: 20vw;
-            height: 20vw;
-            max-width: 120px;
-            max-height: 120px;
-            background-image: url(./gen.png);
-            background-size: 400% 400%;
-            border: 2px solid #b8860b;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
-            position: relative;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
+    .puzzle-piece {
+      width: 20vw;
+      height: 20vw;
+      max-width: 120px;
+      max-height: 120px;
+      background-image: url(./gen.png);
+      background-size: 400% 400%;
+      border: 2px solid #b8860b;
+      transition: transform 0.3s ease;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      position: relative;
+      user-select: none;
+      touch-action: none;
+    }
 
-        .puzzle-piece.active {
-            transform: scale(1.1);
-            z-index: 2;
-            box-shadow: 0 0 15px rgba(255,215,0,0.5);
-            filter: brightness(1.1);
-        }
+    .puzzle-piece.active {
+      transform: scale(1.1);
+      z-index: 2;
+      box-shadow: 0 0 15px rgba(255,215,0,0.5);
+      filter: brightness(1.1);
+    }
 
-        #winMessage {
-            display: none;
-            color: #FFD700;
-            font-size: 1.5em;
-            text-align: center;
-            padding: 15px;
-            background: rgba(0, 0, 50, 0.9);
-            border: 2px solid #ffd700;
-            border-radius: 10px;
-            margin-top: 15px;
-            animation: genieAppear 1.5s ease-out forwards;
-        }
+    #winMessage {
+      display: none;
+      color: #FFD700;
+      font-size: 1.5em;
+      text-align: center;
+      padding: 15px;
+      background: rgba(0, 0, 50, 0.9);
+      border: 2px solid #ffd700;
+      border-radius: 10px;
+      margin-top: 15px;
+      animation: genieAppear 1.5s ease-out forwards;
+    }
 
-        .victory-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-        }
+    .victory-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
 
-        .victory-content {
-            text-align: center;
-            animation: genieAppear 1.5s ease-out;
-        }
+    .victory-content {
+      text-align: center;
+      animation: genieAppear 1.5s ease-out;
+    }
 
-        @media (max-width: 600px) {
-            .container {
-                padding: 15px;
-                margin: 10px;
-            }
-            
-            h1 {
-                font-size: 1.5em;
-            }
-            
-            .puzzle-piece {
-                width: 22vw;
-                height: 22vw;
-            }
-        }
-    </style>
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+        margin: 10px;
+      }
+      
+      h1 {
+        font-size: 1.5em;
+      }
+      
+      .puzzle-piece {
+        width: 22vw;
+        height: 22vw;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Mystical Image Puzzle</h1>
-        <div class="puzzle-container" id="puzzleContainer"></div>
-        <div id="winMessage">Puzzle Solved! Ancient Magic Restored! 🔮</div>
+  <div class="container">
+    <h1>Mystical Image Puzzle</h1>
+    <div class="puzzle-container" id="puzzleContainer"></div>
+    <div id="winMessage">Puzzle Solved! Ancient Magic Restored! 🔮</div>
+  </div>
+  <div class="victory-overlay" id="victoryOverlay">
+    <div class="victory-content">
+      <h2 style="font-size: 2.5em; margin-bottom: 15px;">🌟 Victory! 🌟</h2>
+      <p style="font-size: 1.2em;">The arcane energies have been stabilized!</p>
     </div>
-    <div class="victory-overlay" id="victoryOverlay">
-        <div class="victory-content">
-            <h2 style="font-size: 2.5em; margin-bottom: 15px;">🌟 Victory! 🌟</h2>
-            <p style="font-size: 1.2em;">The arcane energies have been stabilized!</p>
-        </div>
-    </div>
+  </div>
 
-    <script>
-        const puzzleContainer = document.getElementById('puzzleContainer');
-        const victoryOverlay = document.getElementById('victoryOverlay');
-        const gridSize = 4;
-        let draggedPiece = null;
-        let touchStartX = 0;
-        let touchStartY = 0;
+  <script>
+    const puzzleContainer = document.getElementById('puzzleContainer');
+    const victoryOverlay = document.getElementById('victoryOverlay');
+    const gridSize = 4;
+    let draggedPiece = null;
+    let offsetX = 0, offsetY = 0;
+    let startX = 0, startY = 0;
 
-        function createPuzzle() {
-            puzzleContainer.innerHTML = '';
-            const pieces = [];
+    function createPuzzle() {
+      puzzleContainer.innerHTML = '';
+      const pieces = [];
 
-            // Create pieces with correct positions
-            for(let row = 0; row < gridSize; row++) {
-                for(let col = 0; col < gridSize; col++) {
-                    const piece = document.createElement('div');
-                    piece.className = 'puzzle-piece';
-                    piece.style.backgroundPosition = `${-col * 100}% ${-row * 100}%`;
-                    piece.dataset.originalRow = row;
-                    piece.dataset.originalCol = col;
-                    piece.dataset.currentRow = row;
-                    piece.dataset.currentCol = col;
-                    
-                    // Add both mouse and touch events
-                    piece.addEventListener('mousedown', handleStart);
-                    piece.addEventListener('touchstart', handleStart);
-                    piece.addEventListener('mouseup', handleEnd);
-                    piece.addEventListener('touchend', handleEnd);
-                    piece.addEventListener('touchcancel', handleCancel);
+      for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+          const piece = document.createElement('div');
+          piece.className = 'puzzle-piece';
+          piece.style.backgroundPosition = `${(col / (gridSize - 1)) * 100}% ${(row / (gridSize - 1)) * 100}%`;
+          piece.dataset.originalRow = row;
+          piece.dataset.originalCol = col;
+          piece.dataset.currentRow = row;
+          piece.dataset.currentCol = col;
 
-                    pieces.push(piece);
-                }
-            }
-
-            shufflePieces(pieces);
-            pieces.forEach(piece => puzzleContainer.appendChild(piece));
+          // Use Pointer Events if available; otherwise fallback to Touch Events.
+          if (window.PointerEvent) {
+            piece.addEventListener('pointerdown', onDragStart);
+            piece.addEventListener('pointermove', onDragMove);
+            piece.addEventListener('pointerup', onDragEnd);
+            piece.addEventListener('pointercancel', onDragEnd);
+          } else {
+            piece.addEventListener('touchstart', onTouchStart, { passive: false });
+            piece.addEventListener('touchmove', onTouchMove, { passive: false });
+            piece.addEventListener('touchend', onTouchEnd);
+            piece.addEventListener('touchcancel', onTouchEnd);
+          }
+          pieces.push(piece);
         }
+      }
 
-        function shufflePieces(pieces) {
-            for(let i = pieces.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                swapPieces(pieces[i], pieces[j]);
-            }
-        }
+      shufflePieces(pieces);
+      pieces.forEach(piece => puzzleContainer.appendChild(piece));
+    }
 
-        function handleStart(e) {
-            e.preventDefault();
-            const piece = e.target.closest('.puzzle-piece');
-            if (!piece) return;
+    function shufflePieces(pieces) {
+      // Use Fisher-Yates shuffle to randomize the pieces (no win-check during shuffling)
+      for (let i = pieces.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        swapPieces(pieces[i], pieces[j], false);
+      }
+    }
 
-            draggedPiece = piece;
-            piece.classList.add('active');
-            
-            if (e.type === 'touchstart') {
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-            }
-        }
+    // --- Pointer Events Handlers ---
+    function onDragStart(e) {
+      e.preventDefault();
+      draggedPiece = e.currentTarget;
+      draggedPiece.classList.add('active');
+      const rect = draggedPiece.getBoundingClientRect();
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+      startX = e.clientX;
+      startY = e.clientY;
+      draggedPiece.setPointerCapture(e.pointerId);
+    }
 
-        function handleEnd(e) {
-            if (!draggedPiece) return;
-            
-            const touch = e.type === 'touchend' ? e.changedTouches[0] : e;
-            const endX = touch.clientX;
-            const endY = touch.clientY;
-            
-            // Check if it's a tap (not swipe)
-            if (e.type === 'touchend' && 
-                Math.abs(endX - touchStartX) > 10 || 
-                Math.abs(endY - touchStartY) > 10) {
-                return;
-            }
+    function onDragMove(e) {
+      if (!draggedPiece) return;
+      const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY;
+      draggedPiece.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+    }
 
-            const targetPiece = document.elementFromPoint(endX, endY).closest('.puzzle-piece');
-            
-            if (targetPiece && targetPiece !== draggedPiece) {
-                swapPieces(draggedPiece, targetPiece);
-                checkWin();
-            }
+    function onDragEnd(e) {
+      if (!draggedPiece) return;
+      // Find drop target using pointer release coordinates
+      const dropElem = document.elementFromPoint(e.clientX, e.clientY);
+      const targetPiece = dropElem?.closest('.puzzle-piece');
+      if (targetPiece && targetPiece !== draggedPiece) {
+        swapPieces(draggedPiece, targetPiece, true);
+        checkWin();
+      }
+      draggedPiece.style.transform = '';
+      draggedPiece.classList.remove('active');
+      draggedPiece.releasePointerCapture(e.pointerId);
+      draggedPiece = null;
+    }
 
-            draggedPiece.classList.remove('active');
-            draggedPiece = null;
-        }
+    // --- Touch Events Handlers ---
+    function onTouchStart(e) {
+      e.preventDefault();
+      draggedPiece = e.currentTarget;
+      draggedPiece.classList.add('active');
+      const touch = e.touches[0];
+      const rect = draggedPiece.getBoundingClientRect();
+      offsetX = touch.clientX - rect.left;
+      offsetY = touch.clientY - rect.top;
+      startX = touch.clientX;
+      startY = touch.clientY;
+    }
 
-        function handleCancel() {
-            if (draggedPiece) {
-                draggedPiece.classList.remove('active');
-                draggedPiece = null;
-            }
-        }
+    function onTouchMove(e) {
+      if (!draggedPiece) return;
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - startX;
+      const deltaY = touch.clientY - startY;
+      draggedPiece.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+    }
 
-        function swapPieces(piece1, piece2) {
-            // Swap background positions
-            const tempPos = piece1.style.backgroundPosition;
-            piece1.style.backgroundPosition = piece2.style.backgroundPosition;
-            piece2.style.backgroundPosition = tempPos;
+    function onTouchEnd(e) {
+      if (!draggedPiece) return;
+      let touch;
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        touch = e.changedTouches[0];
+      } else {
+        touch = { clientX: startX, clientY: startY };
+      }
+      const dropElem = document.elementFromPoint(touch.clientX, touch.clientY);
+      const targetPiece = dropElem?.closest('.puzzle-piece');
+      if (targetPiece && targetPiece !== draggedPiece) {
+        swapPieces(draggedPiece, targetPiece, true);
+        checkWin();
+      }
+      draggedPiece.style.transform = '';
+      draggedPiece.classList.remove('active');
+      draggedPiece = null;
+    }
 
-            // Swap current positions
-            const tempRow = piece1.dataset.currentRow;
-            const tempCol = piece1.dataset.currentCol;
-            piece1.dataset.currentRow = piece2.dataset.currentRow;
-            piece1.dataset.currentCol = piece2.dataset.currentCol;
-            piece2.dataset.currentRow = tempRow;
-            piece2.dataset.currentCol = tempCol;
-        }
+    // --- Swap and Win Check ---
+    function swapPieces(piece1, piece2, updateData) {
+      // Swap the background positions to change the image parts
+      const tempPos = piece1.style.backgroundPosition;
+      piece1.style.backgroundPosition = piece2.style.backgroundPosition;
+      piece2.style.backgroundPosition = tempPos;
 
-        function checkWin() {
-            const allCorrect = Array.from(puzzleContainer.children).every(piece => {
-                return piece.dataset.originalRow === piece.dataset.currentRow &&
-                       piece.dataset.originalCol === piece.dataset.currentCol;
-            });
+      if (updateData) {
+        // Update data attributes tracking current positions
+        const tempRow = piece1.dataset.currentRow;
+        const tempCol = piece1.dataset.currentCol;
+        piece1.dataset.currentRow = piece2.dataset.currentRow;
+        piece1.dataset.currentCol = piece2.dataset.currentCol;
+        piece2.dataset.currentRow = tempRow;
+        piece2.dataset.currentCol = tempCol;
+      }
+    }
 
-            if(allCorrect) {
-                document.getElementById('winMessage').style.display = 'block';
-                victoryOverlay.style.display = 'flex';
-                
-                puzzleContainer.style.transform = 'scale(1.05)';
-                puzzleContainer.style.filter = 'drop-shadow(0 0 20px gold)';
-                
-                setTimeout(() => {
-                    puzzleContainer.style.transform = 'scale(1)';
-                }, 1000);
-            }
-        }
+    function checkWin() {
+      const allCorrect = Array.from(puzzleContainer.children).every(piece => {
+        return piece.dataset.originalRow === piece.dataset.currentRow &&
+               piece.dataset.originalCol === piece.dataset.currentCol;
+      });
 
-        // Initialize the game
-        createPuzzle();
-    </script>
+      if (allCorrect) {
+        document.getElementById('winMessage').style.display = 'block';
+        victoryOverlay.style.display = 'flex';
+        puzzleContainer.style.transform = 'scale(1.05)';
+        puzzleContainer.style.filter = 'drop-shadow(0 0 20px gold)';
+        setTimeout(() => {
+          puzzleContainer.style.transform = 'scale(1)';
+        }, 1000);
+      }
+    }
+
+    // Initialize the game
+    createPuzzle();
+  </script>
 </body>
 </html>
