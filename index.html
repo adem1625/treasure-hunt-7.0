@@ -45,7 +45,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      /* Prevent default touch scrolling on game elements */
+      /* Prevent default scrolling on touch devices */
       touch-action: none;
     }
 
@@ -97,8 +97,9 @@
       touch-action: none;
     }
 
+    /* Remove transition while dragging for immediate feedback */
     .puzzle-piece.active {
-      transform: scale(1.1);
+      transition: none;
       z-index: 2;
       box-shadow: 0 0 15px rgba(255,215,0,0.5);
       filter: brightness(1.1);
@@ -173,6 +174,7 @@
     let offsetX = 0, offsetY = 0;
     let startX = 0, startY = 0;
 
+    // Create puzzle pieces with data attributes for tracking positions.
     function createPuzzle() {
       puzzleContainer.innerHTML = '';
       const pieces = [];
@@ -184,6 +186,7 @@
           piece.style.backgroundPosition = `${(col / (gridSize - 1)) * 100}% ${(row / (gridSize - 1)) * 100}%`;
           piece.dataset.originalRow = row;
           piece.dataset.originalCol = col;
+          // current positions are initially the same as the original
           piece.dataset.currentRow = row;
           piece.dataset.currentCol = col;
 
@@ -203,15 +206,16 @@
         }
       }
 
+      // Shuffle pieces and update their data attributes.
       shufflePieces(pieces);
       pieces.forEach(piece => puzzleContainer.appendChild(piece));
     }
 
+    // Shuffle using Fisher-Yates and update the logical positions.
     function shufflePieces(pieces) {
-      // Use Fisher-Yates shuffle to randomize the pieces (no win-check during shuffling)
       for (let i = pieces.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        swapPieces(pieces[i], pieces[j], false);
+        swapPieces(pieces[i], pieces[j], true);
       }
     }
 
@@ -230,6 +234,7 @@
 
     function onDragMove(e) {
       if (!draggedPiece) return;
+      // Update position instantly for smooth dragging.
       const deltaX = e.clientX - startX;
       const deltaY = e.clientY - startY;
       draggedPiece.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
@@ -237,11 +242,15 @@
 
     function onDragEnd(e) {
       if (!draggedPiece) return;
-      // Temporarily hide the dragged piece so it doesn't block the elementFromPoint detection
+      // Use the center point of the dragged piece for drop detection.
+      const rect = draggedPiece.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      // Temporarily hide the dragged piece so elementFromPoint can detect the underlying element.
       draggedPiece.style.display = 'none';
-      const dropElem = document.elementFromPoint(e.clientX, e.clientY);
+      const dropElem = document.elementFromPoint(centerX, centerY);
       draggedPiece.style.display = '';
-      const targetPiece = dropElem?.closest('.puzzle-piece');
+      const targetPiece = dropElem ? dropElem.closest('.puzzle-piece') : null;
       if (targetPiece && targetPiece !== draggedPiece) {
         swapPieces(draggedPiece, targetPiece, true);
         checkWin();
@@ -275,17 +284,14 @@
 
     function onTouchEnd(e) {
       if (!draggedPiece) return;
-      let touch;
-      if (e.changedTouches && e.changedTouches.length > 0) {
-        touch = e.changedTouches[0];
-      } else {
-        touch = { clientX: startX, clientY: startY };
-      }
-      // Temporarily hide the dragged piece for drop detection
+      let touch = e.changedTouches && e.changedTouches.length ? e.changedTouches[0] : { clientX: startX, clientY: startY };
+      const rect = draggedPiece.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
       draggedPiece.style.display = 'none';
-      const dropElem = document.elementFromPoint(touch.clientX, touch.clientY);
+      const dropElem = document.elementFromPoint(centerX, centerY);
       draggedPiece.style.display = '';
-      const targetPiece = dropElem?.closest('.puzzle-piece');
+      const targetPiece = dropElem ? dropElem.closest('.puzzle-piece') : null;
       if (targetPiece && targetPiece !== draggedPiece) {
         swapPieces(draggedPiece, targetPiece, true);
         checkWin();
@@ -295,15 +301,15 @@
       draggedPiece = null;
     }
 
-    // --- Swap and Win Check ---
+    // --- Swap Pieces and Win Check ---
     function swapPieces(piece1, piece2, updateData) {
-      // Swap the background positions to change the image parts
+      // Swap the background positions so that the correct image parts exchange.
       const tempPos = piece1.style.backgroundPosition;
       piece1.style.backgroundPosition = piece2.style.backgroundPosition;
       piece2.style.backgroundPosition = tempPos;
 
       if (updateData) {
-        // Update data attributes tracking current positions
+        // Swap the logical (current) positions.
         const tempRow = piece1.dataset.currentRow;
         const tempCol = piece1.dataset.currentCol;
         piece1.dataset.currentRow = piece2.dataset.currentRow;
@@ -318,7 +324,6 @@
         return piece.dataset.originalRow === piece.dataset.currentRow &&
                piece.dataset.originalCol === piece.dataset.currentCol;
       });
-
       if (allCorrect) {
         document.getElementById('winMessage').style.display = 'block';
         victoryOverlay.style.display = 'flex';
@@ -330,7 +335,7 @@
       }
     }
 
-    // Initialize the game
+    // Initialize the puzzle game.
     createPuzzle();
   </script>
 </body>
